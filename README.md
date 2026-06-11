@@ -1,3 +1,9 @@
+
+https://orbit-wallet-two.vercel.app/
+
+
+Orbit Wallet is a lightweight Web3 wallet built for Ethereum and Solana, featuring wallet generation, account recovery, and multi-wallet management from a single recovery phrase.
+
 # bun-react-tailwind-shadcn-template
 
 To install dependencies:
