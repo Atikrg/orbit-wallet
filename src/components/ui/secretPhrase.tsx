@@ -34,8 +34,9 @@ export function SecretPhraseComponent() {
 
             toast.success("Copied the phrase");
 
-        } catch (error: any) {
-            toast.error("Failed to copy: ", error)
+        } catch (error: unknown) {
+            const message = error instanceof Error ? error.message : "Unknown error";
+            toast.error("Failed to copy to clipboard", { description: message });
         }
     }
 

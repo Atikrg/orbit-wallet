@@ -1,14 +1,9 @@
 
 import { Toaster } from "sonner";
-import Footer from "./components/ui/footer";
 import Recover from "./components/ui/recovery";
-import { SecretPhraseComponent } from "./components/ui/secretPhrase";
 import Wallet from "./components/ui/wallet";
-import WalletDataComponent from "./components/ui/walletData";
 import "./index.css";
 
-import logo from "./logo.svg";
-import reactLogo from "./react.svg";
 import { useWalletContext } from "./context/walletContext";
 
 export function App() {

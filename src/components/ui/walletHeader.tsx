@@ -31,16 +31,16 @@ const WalletHeaderComponent = () => {
 
 
     const addWalletHandler = () => {
-
-
         const mnemonicData = mnemonics?.mnemonicsData ?? [];
 
+        if (mnemonicData.length === 0) {
+            toast.error("No mnemonic available. Please generate a wallet first.");
+            return;
+        }
 
         const formattedMnemonics = mnemonicData.join(" ");
 
-
-        // generate wallets
-        if (walletName.toLocaleLowerCase() == "ethereum") {
+        if (walletName.toLocaleLowerCase() === "ethereum") {
             const walletLength = ethereumWallet.length;
             const wallet = generateEthereumWallet(formattedMnemonics, walletLength.toString());
 
@@ -52,22 +52,15 @@ const WalletHeaderComponent = () => {
                 privateKey: privateKey,
             };
 
-
-            setEthereumWallet((prev) => [
-                ...prev, newWallet
-            ])
-
-
-            localStorage.setItem("totalEthereumWallets", ethereumWallet.length.toString());
-
+            setEthereumWallet((prev) => {
+                const updated = [...prev, newWallet];
+                localStorage.setItem("totalEthereumWallets", updated.length.toString());
+                return updated;
+            });
         }
 
-
-        if (walletName.toLocaleLowerCase() == "solana") {
-
-
+        if (walletName.toLocaleLowerCase() === "solana") {
             const walletLength = solanaWallet.length;
-
             const wallet = generateSolanaWallet(formattedMnemonics, walletLength.toString());
 
             const { publicKey, privateKey } = wallet;
@@ -78,17 +71,12 @@ const WalletHeaderComponent = () => {
                 privateKey: privateKey,
             };
 
-
-            setSolanaWallet((prev) => [
-                ...prev, newWallet
-            ])
-
-
-            localStorage.setItem("totalSolanaWallets", solanaWallet.length.toString());
-
-
+            setSolanaWallet((prev) => {
+                const updated = [...prev, newWallet];
+                localStorage.setItem("totalSolanaWallets", updated.length.toString());
+                return updated;
+            });
         }
-
     }
 
     return (

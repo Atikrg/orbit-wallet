@@ -23,6 +23,7 @@ const WalletDataComponent = () => {
     } = useWalletContext();
 
     useEffect(() => {
+        let cancelled = false;
         const formattedMnemonics = mnemonics?.mnemonicsData?.join(" ") ?? "";
 
         if (!formattedMnemonics || !walletName) return;
@@ -31,17 +32,23 @@ const WalletDataComponent = () => {
 
         if (currentWalletName === "solana") {
             if (solanaWallet.length === 0) {
-                const wallet = generateSolanaWallet(formattedMnemonics, "0");
+                try {
+                    const wallet = generateSolanaWallet(formattedMnemonics, "0");
 
-                const newWallet: Wallet = {
-                    title: "Wallet 1",
-                    publicKey: wallet.publicKey,
-                    privateKey: wallet.privateKey,
-                };
+                    if (cancelled) return;
 
-                setSolanaWallet([newWallet]);
-                setWalletData([newWallet]);
-                localStorage.setItem("totalSolanaWallets", "1");
+                    const newWallet: Wallet = {
+                        title: "Wallet 1",
+                        publicKey: wallet.publicKey,
+                        privateKey: wallet.privateKey,
+                    };
+
+                    setSolanaWallet([newWallet]);
+                    setWalletData([newWallet]);
+                    localStorage.setItem("totalSolanaWallets", "1");
+                } catch (error) {
+                    console.error("Failed to generate Solana wallet:", error);
+                }
             } else {
                 setWalletData(solanaWallet);
             }
@@ -49,22 +56,32 @@ const WalletDataComponent = () => {
 
         if (currentWalletName === "ethereum") {
             if (ethereumWallet.length === 0) {
-                const wallet = generateEthereumWallet(formattedMnemonics, "0");
+                try {
+                    const wallet = generateEthereumWallet(formattedMnemonics, "0");
 
-                const newWallet: Wallet = {
-                    title: "Wallet 1",
-                    publicKey: wallet.publicKey,
-                    privateKey: wallet.privateKey,
-                };
+                    if (cancelled) return;
 
-                setEthereumWallet([newWallet]);
-                setWalletData([newWallet]);
-                localStorage.setItem("totalEthereumWallets", "1");
+                    const newWallet: Wallet = {
+                        title: "Wallet 1",
+                        publicKey: wallet.publicKey,
+                        privateKey: wallet.privateKey,
+                    };
+
+                    setEthereumWallet([newWallet]);
+                    setWalletData([newWallet]);
+                    localStorage.setItem("totalEthereumWallets", "1");
+                } catch (error) {
+                    console.error("Failed to generate Ethereum wallet:", error);
+                }
             } else {
                 setWalletData(ethereumWallet);
             }
         }
-    }, [walletName, mnemonics]);
+
+        return () => {
+            cancelled = true;
+        };
+    }, [walletName, mnemonics, solanaWallet.length, ethereumWallet.length]);
 
     useEffect(() => {
         if (walletName.toLowerCase() === "solana") {

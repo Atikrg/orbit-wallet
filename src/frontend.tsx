@@ -1,6 +1,8 @@
 // 1. Import and set up the Buffer polyfill at the very top
 import * as buffer from "buffer";
-window.Buffer = buffer.Buffer;
+if (!window.Buffer) {
+  window.Buffer = buffer.Buffer;
+}
 
 // 2. Your existing imports continue below
 import { StrictMode } from "react";

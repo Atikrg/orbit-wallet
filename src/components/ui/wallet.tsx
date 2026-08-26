@@ -1,13 +1,10 @@
-import { toast } from "sonner";
 import { Button } from "./button";
 import Footer from "./footer";
-import { useContext } from "react";
 import { useWalletContext } from "@/context/walletContext";
-import { generateMnemonicForWallet } from "@/lib/utils";
 const Wallet = () => {
 
 
-    const { walletName, setWalletName, mnemonics, setMnemonics } = useWalletContext();
+    const { setWalletName } = useWalletContext();
 
 
     const solanaHandler = () => {

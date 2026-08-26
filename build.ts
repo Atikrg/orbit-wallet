@@ -137,6 +137,14 @@ const result = await Bun.build({
 
 const end = performance.now();
 
+if (!result.success) {
+  console.error("\n❌ Build failed:\n");
+  for (const log of result.logs) {
+    console.error(log);
+  }
+  process.exit(1);
+}
+
 const outputTable = result.outputs.map(output => ({
   File: path.relative(process.cwd(), output.path),
   Type: output.kind,
