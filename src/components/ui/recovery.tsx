@@ -5,10 +5,9 @@ import { SecretPhraseComponent } from "./secretPhrase";
 import WalletDataComponent from "./walletData";
 import { generateMnemonicForWallet, isMnemonicValid } from "@/lib/utils";
 import { toast } from "sonner";
-import { recoverSolanaWallets } from "@/lib/solanaWallet";
-import { recoverEthereumWallets } from "@/lib/ethereumWallet";
-
-const MAX_RECOVERY_WALLETS = 20;
+import { recoverSolanaWalletsByIndexes, isSolanaSecretKey, importSolanaFromSecretKey } from "@/lib/solanaWallet";
+import { recoverEthereumWalletsByIndexes, isEthereumPrivateKey, importEthereumFromPrivateKey } from "@/lib/ethereumWallet";
+import { getWalletIndexes, saveWalletIndexes, type Network } from "@/lib/walletStore";
 
 const Recover = () => {
     const { recoveryPhrase, setRecoveryPhrase, mnemonics, setMnemonics, walletName, solanaWallet, setSolanaWallet, ethereumWallet, setEthereumWallet } = useWalletContext();
@@ -26,21 +25,59 @@ const Recover = () => {
                     mnemonicsData: formattedMnemonics
                 });
 
+                const network: Network = walletName.toLowerCase() === "ethereum" ? "ethereum" : "solana";
+                saveWalletIndexes(network, mnemonics, [0]);
+
                 setShowWallet(true);
             } catch (error) {
                 toast.error("Failed to generate wallet. Please try again.");
                 setShowWallet(false);
             }
         } else {
-            if (!isMnemonicValid(recoveryPhrase)) {
+            const input = recoveryPhrase.trim();
+            const isEthereum = walletName.toLowerCase() === "ethereum";
+            const isSolana = walletName.toLowerCase() === "solana";
+
+            const isSingleKey = isEthereum
+                ? isEthereumPrivateKey(input)
+                : isSolana
+                    ? isSolanaSecretKey(input)
+                    : false;
+
+            if (isEthereum && !isSingleKey && isSolanaSecretKey(input)) {
+                toast.error("This looks like a Solana secret key. Use it with the Solana wallet instead.");
+                setShowWallet(false);
+                return;
+            }
+
+            if (!isSingleKey && !isMnemonicValid(input)) {
                 toast.error("Invalid secret recovery phrase");
                 setShowWallet(false);
                 return;
             }
 
             try {
-                if (walletName.toLocaleLowerCase() === "ethereum") {
-                    const recoveredEthereumData = recoverEthereumWallets(recoveryPhrase, MAX_RECOVERY_WALLETS);
+                if (isSingleKey) {
+                    const singleWallet = isEthereum
+                        ? importEthereumFromPrivateKey(input)
+                        : importSolanaFromSecretKey(input);
+
+                    const recoveredData = [{
+                        title: "Wallet 1",
+                        index: 0,
+                        ...singleWallet,
+                    }];
+
+                    if (isEthereum) setEthereumWallet(recoveredData);
+                    if (isSolana) setSolanaWallet(recoveredData);
+
+                    toast.success("Wallet recovered successfully");
+                    setShowWallet(true);
+                }
+
+                if (!isSingleKey && isEthereum) {
+                    const indexes = getWalletIndexes("ethereum", input);
+                    const recoveredEthereumData = recoverEthereumWalletsByIndexes(input, indexes);
 
                     if (recoveredEthereumData.length === 0) {
                         toast.error("No wallets found for this recovery phrase.");
@@ -49,8 +86,9 @@ const Recover = () => {
                     }
 
                     setEthereumWallet(recoveredEthereumData);
+                    saveWalletIndexes("ethereum", input, recoveredEthereumData.map((w) => w.index));
 
-                    const formattedMnemonics = recoveryPhrase.split(" ");
+                    const formattedMnemonics = input.split(" ");
                     setMnemonics({
                         value: "wallet-phrase",
                         trigger: "Your Secret Phrase",
@@ -61,8 +99,9 @@ const Recover = () => {
                     setShowWallet(true);
                 }
 
-                if (walletName.toLocaleLowerCase() === "solana") {
-                    const recoveredSolanaData = await recoverSolanaWallets(recoveryPhrase, MAX_RECOVERY_WALLETS);
+                if (!isSingleKey && isSolana) {
+                    const indexes = getWalletIndexes("solana", input);
+                    const recoveredSolanaData = await recoverSolanaWalletsByIndexes(input, indexes);
 
                     if (recoveredSolanaData.length === 0) {
                         toast.error("No wallets found for this recovery phrase.");
@@ -71,8 +110,9 @@ const Recover = () => {
                     }
 
                     setSolanaWallet(recoveredSolanaData);
+                    saveWalletIndexes("solana", input, recoveredSolanaData.map((w) => w.index));
 
-                    const formattedMnemonics = recoveryPhrase.split(" ");
+                    const formattedMnemonics = input.split(" ");
                     setMnemonics({
                         value: "wallet-phrase",
                         trigger: "Your Secret Phrase",

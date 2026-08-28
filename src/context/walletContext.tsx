@@ -11,6 +11,7 @@ export type Wallet = {
     title: string;
     publicKey: string;
     privateKey: string;
+    index: number;
 };
 
 

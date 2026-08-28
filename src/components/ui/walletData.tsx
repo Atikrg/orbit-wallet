@@ -8,6 +8,7 @@ import Footer from "./footer";
 import { useWalletContext, type Wallet } from "@/context/walletContext";
 import { generateSolanaWallet } from "@/lib/solanaWallet";
 import { generateEthereumWallet } from "@/lib/ethereumWallet";
+import { getWalletIndexes, saveWalletIndexes, type Network } from "@/lib/walletStore";
 
 const WalletDataComponent = () => {
     const [walletData, setWalletData] = useState<Wallet[]>([]);
@@ -39,6 +40,7 @@ const WalletDataComponent = () => {
 
                     const newWallet: Wallet = {
                         title: "Wallet 1",
+                        index: 0,
                         publicKey: wallet.publicKey,
                         privateKey: wallet.privateKey,
                     };
@@ -46,6 +48,7 @@ const WalletDataComponent = () => {
                     setSolanaWallet([newWallet]);
                     setWalletData([newWallet]);
                     localStorage.setItem("totalSolanaWallets", "1");
+                    saveWalletIndexes("solana", formattedMnemonics, [0]);
                 } catch (error) {
                     console.error("Failed to generate Solana wallet:", error);
                 }
@@ -63,6 +66,7 @@ const WalletDataComponent = () => {
 
                     const newWallet: Wallet = {
                         title: "Wallet 1",
+                        index: 0,
                         publicKey: wallet.publicKey,
                         privateKey: wallet.privateKey,
                     };
@@ -70,6 +74,7 @@ const WalletDataComponent = () => {
                     setEthereumWallet([newWallet]);
                     setWalletData([newWallet]);
                     localStorage.setItem("totalEthereumWallets", "1");
+                    saveWalletIndexes("ethereum", formattedMnemonics, [0]);
                 } catch (error) {
                     console.error("Failed to generate Ethereum wallet:", error);
                 }
@@ -104,12 +109,17 @@ const WalletDataComponent = () => {
 
         setWalletData(updatedWallets);
 
+        const formattedMnemonics = mnemonics?.mnemonicsData?.join(" ") ?? "";
+
         if (walletName.toLowerCase() === "solana") {
             setSolanaWallet(updatedWallets);
             localStorage.setItem(
                 "totalSolanaWallets",
                 updatedWallets.length.toString()
             );
+            if (formattedMnemonics) {
+                saveWalletIndexes("solana", formattedMnemonics, updatedWallets.map((w) => w.index));
+            }
         }
 
         if (walletName.toLowerCase() === "ethereum") {
@@ -118,6 +128,9 @@ const WalletDataComponent = () => {
                 "totalEthereumWallets",
                 updatedWallets.length.toString()
             );
+            if (formattedMnemonics) {
+                saveWalletIndexes("ethereum", formattedMnemonics, updatedWallets.map((w) => w.index));
+            }
         }
     };
 

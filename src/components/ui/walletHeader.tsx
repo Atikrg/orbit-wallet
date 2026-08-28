@@ -13,6 +13,7 @@ import {
 import { useWalletContext } from "@/context/walletContext";
 import { generateEthereumWallet } from "@/lib/ethereumWallet";
 import { generateSolanaWallet } from "@/lib/solanaWallet";
+import { saveWalletIndexes } from "@/lib/walletStore";
 
 
 
@@ -40,14 +41,20 @@ const WalletHeaderComponent = () => {
 
         const formattedMnemonics = mnemonicData.join(" ");
 
+        const nextIndex = (indexes: { index: number }[]): number => {
+            const max = indexes.reduce((acc, w) => Math.max(acc, w.index), -1);
+            return max + 1;
+        };
+
         if (walletName.toLocaleLowerCase() === "ethereum") {
-            const walletLength = ethereumWallet.length;
+            const walletLength = nextIndex(ethereumWallet);
             const wallet = generateEthereumWallet(formattedMnemonics, walletLength.toString());
 
             const { publicKey, privateKey } = wallet;
 
             const newWallet = {
                 title: `Wallet ${walletLength + 1}`,
+                index: walletLength,
                 publicKey: publicKey,
                 privateKey: privateKey,
             };
@@ -55,18 +62,20 @@ const WalletHeaderComponent = () => {
             setEthereumWallet((prev) => {
                 const updated = [...prev, newWallet];
                 localStorage.setItem("totalEthereumWallets", updated.length.toString());
+                saveWalletIndexes("ethereum", formattedMnemonics, updated.map((w) => w.index));
                 return updated;
             });
         }
 
         if (walletName.toLocaleLowerCase() === "solana") {
-            const walletLength = solanaWallet.length;
+            const walletLength = nextIndex(solanaWallet);
             const wallet = generateSolanaWallet(formattedMnemonics, walletLength.toString());
 
             const { publicKey, privateKey } = wallet;
 
             const newWallet = {
                 title: `Wallet ${walletLength + 1}`,
+                index: walletLength,
                 publicKey: publicKey,
                 privateKey: privateKey,
             };
@@ -74,6 +83,7 @@ const WalletHeaderComponent = () => {
             setSolanaWallet((prev) => {
                 const updated = [...prev, newWallet];
                 localStorage.setItem("totalSolanaWallets", updated.length.toString());
+                saveWalletIndexes("solana", formattedMnemonics, updated.map((w) => w.index));
                 return updated;
             });
         }
